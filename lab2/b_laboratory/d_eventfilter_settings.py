@@ -62,9 +62,9 @@ class Window(QtWidgets.QWidget):
     @Slot()
     def set_lcd_mode(self):
         current_value = self.ui.lcdNumber.value()
-        print(self.ui.comboBox.currentText())
         self.ui.lcdNumber.setMode(self.lsd_mode[self.ui.comboBox.currentText()])
         self.ui.lcdNumber.display(current_value)
+        self.setFocus()
 
 
     def keyPressEvent(self, event: QtGui.QKeyEvent) -> None:
@@ -102,7 +102,7 @@ class Window(QtWidgets.QWidget):
         """
         mode = self.settings.value("combo_box_value", "oct")
         self.ui.lcdNumber.setMode(self.lsd_mode[mode])
-        lcd_value = int(self.settings.value("lcd_number_value", 0))
+        lcd_value = float(self.settings.value("lcd_number_value", 0))
         self.ui.lcdNumber.display(lcd_value)
         self.ui.comboBox.setCurrentText(mode)
         self.ui.horizontalSlider.setValue(self.settings.value("slider_value", 0))
