@@ -100,10 +100,11 @@ class Window(QtWidgets.QWidget):
 
         :return: None
         """
-        self.ui.lcdNumber.setMode(self.lsd_mode[self.settings.value("combo_box_value", "oct")])
-        print(self.ui.lcdNumber.mode())
-        self.ui.lcdNumber.display(self.settings.value("lcd_number_value", "0"))
-        self.ui.comboBox.setCurrentText(self.settings.value("combo_box_value", "oct"))
+        mode = self.settings.value("combo_box_value", "oct")
+        self.ui.lcdNumber.setMode(self.lsd_mode[mode])
+        lcd_value = int(self.settings.value("lcd_number_value", 0))
+        self.ui.lcdNumber.display(lcd_value)
+        self.ui.comboBox.setCurrentText(mode)
         self.ui.horizontalSlider.setValue(self.settings.value("slider_value", 0))
         self.ui.dial.setValue(self.settings.value("dial_value", 0))
 
