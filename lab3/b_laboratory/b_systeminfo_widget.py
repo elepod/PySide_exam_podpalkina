@@ -32,7 +32,9 @@ class SystemInfoWindow(QtWidgets.QWidget):
         self.lineEditTime.textChanged.connect(self.setDelay)
 
         self.lineEditCPU = QtWidgets.QLineEdit()
+        self.lineEditCPU.setReadOnly(True)
         self.lineEditRAM = QtWidgets.QLineEdit()
+        self.lineEditRAM.setReadOnly(True)
 
         l = QtWidgets.QVBoxLayout()
         l.addWidget(self.lineEditTime)
