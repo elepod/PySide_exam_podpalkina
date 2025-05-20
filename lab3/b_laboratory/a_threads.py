@@ -3,6 +3,7 @@
 """
 
 import time
+from datetime import datetime, timezone
 import requests
 
 import psutil
@@ -58,7 +59,7 @@ class WeatherHandler(QtCore.QThread):
             response = requests.get(self.__api_url)
             data = response.json()
             self.weatherHandler.emit(str(data))
-            print(f'WeatherHandler: {data}')
+            print(f'{datetime.now(timezone.utc)} WeatherHandler: {data}')
             time.sleep(self.__delay)
 
     def stop(self):

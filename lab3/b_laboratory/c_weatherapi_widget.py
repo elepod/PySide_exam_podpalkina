@@ -57,18 +57,22 @@ class WeatherApiWindow(QtWidgets.QWidget):
     def __handleInfoThread(self, status):
         if status:
             self.thread = WeatherHandler(lat=self.lat, lon=self.lon)
+            self.lineEditLatitude.setDisabled(True)
+            self.lineEditLongitude.setDisabled(True)
+            self.thread.setDelay(int(self.lineEditTime.text()))
             self.thread.started.connect(lambda: print("Поток запущен"))
             self.thread.weatherHandler.connect(lambda data: self.appendInfo(data))
             self.thread.finished.connect(lambda: print("Поток остановлен"))
             self.thread.finished.connect(lambda: self.pushButtonHandle.setChecked(False))
             self.thread.finished.connect(lambda: self.outputText.clear())
+            self.thread.finished.connect(lambda: self.lineEditLatitude.setDisabled(False))
+            self.thread.finished.connect(lambda: self.lineEditLongitude.setDisabled(False))
             self.thread.start()
         else:
             self.thread.stop()
 
 
     def appendInfo(self, data):
-        print(f'App: {data}')
         self.outputText.setPlainText(data)
 
     def setDelay(self, text):
