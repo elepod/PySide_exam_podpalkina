@@ -6,9 +6,6 @@ from PySide6.QtWidgets import QPushButton, QTableView, QHBoxLayout, QVBoxLayout,
 
 
 class AddNoteDialog(QtWidgets.QDialog):
-    """
-    Диалоговое окно для добавления новой заметки
-    """
 
     def __init__(self, parent=None, mode="add", note_data=None, note_id=None):
         super().__init__(parent)
@@ -21,7 +18,6 @@ class AddNoteDialog(QtWidgets.QDialog):
                             }[mode])
         self.setModal(True)
 
-        # Создаем элементы формы
         self.titleLabel = QLabel("Название:")
         self.titleEdit = QLineEdit()
 
@@ -35,14 +31,12 @@ class AddNoteDialog(QtWidgets.QDialog):
         self.dateEdit.setCalendarPopup(True)
         self.dateEdit.setReadOnly(mode == "view")
 
-        # Кнопки
         self.saveButton = QPushButton("Сохранить")
         self.cancelButton = QPushButton("Отмена")
 
         if mode == "view":
             self.saveButton.hide()
 
-        # Размещаем элементы
         layout = QFormLayout()
         layout.addRow(self.titleLabel, self.titleEdit)
         layout.addRow(self.descriptionLabel, self.descriptionEdit)
@@ -62,7 +56,6 @@ class AddNoteDialog(QtWidgets.QDialog):
             self.titleEdit.setText(note_data.get('title', ''))
             self.descriptionEdit.setPlainText(note_data.get('text', ''))
 
-            # Устанавливаем дату из данных заметки
             due_date = QtCore.QDateTime.fromString(
                 note_data.get('due_date', ''),
                 "HH:mm dd.MM.yyyy"
@@ -70,7 +63,6 @@ class AddNoteDialog(QtWidgets.QDialog):
             if due_date.isValid():
                 self.dateEdit.setDateTime(due_date)
 
-        # Подключаем сигналы
         self.saveButton.clicked.connect(self.saveNote)
         self.cancelButton.clicked.connect(self.reject)
 
@@ -141,7 +133,7 @@ class NotesWindow(QtWidgets.QWidget):
         for col in range(self.tableModel.columnCount()):
             item = self.tableModel.item(row, col)
             item.setBackground(bg_color)
-            if col == 2:  # Только для колонки с датой выполнения
+            if col == 2:  # Дополнительная подсветка для колонки с датой выполнения
                 item.setForeground(text_color)
 
     def initUi(self):
@@ -178,7 +170,6 @@ class NotesWindow(QtWidgets.QWidget):
             with open("data.json", "r", encoding="utf8") as file:
                 loaded_data = json.load(file)
 
-                # Очищаем текущие данные
                 self.notes_data = {}
                 self.tableModel.removeRows(0, self.tableModel.rowCount())
 
@@ -200,15 +191,11 @@ class NotesWindow(QtWidgets.QWidget):
 
 
     def initTableModel(self) -> None:
-        """
-        Инициализация табличной модели и загрузка данных
-        """
         self.tableModel.setHorizontalHeaderLabels(["Название", "Дата создания", "Дата выполнения"])
         self.loadDataFromFile()
 
 
     def initSignals(self):
-        """Инициализация сигналов"""
         self.addButton.clicked.connect(self.onAddButtonClicked)
         self.deleteButton.clicked.connect(self.deleteSelectedNote)
         self.showButton.clicked.connect(self.showSelectedNote)
@@ -232,7 +219,7 @@ class NotesWindow(QtWidgets.QWidget):
         # Получаем данные из выбранной строки
         title = self.tableModel.item(row, 0).text()
 
-        # Ищем полные данные заметки (включая текст) в словаре notes_data
+        # Ищем полные данные заметки в словаре notes_data
         note_data = None
         for note in self.notes_data.values():
             if note['title'] == title:
@@ -307,7 +294,7 @@ class NotesWindow(QtWidgets.QWidget):
         if note_id not in self.notes_data:
             return
 
-        # Сохраняем старую дату создания для поиска
+        # Сохраняем старую дату и заголовок для поиска
         creation_date = self.notes_data[note_id]['creation_date']
         old_title = self.notes_data[note_id]['title']
 
@@ -346,9 +333,6 @@ class NotesWindow(QtWidgets.QWidget):
 
         # Удаляем запись из словаря notes_data
         # Для этого нужно найти ID записи, соответствующей этой строке
-        # Так как порядок в таблице может не совпадать с порядком в словаре,
-        # нам нужно найти запись по содержимому
-
         # Получаем данные из удаляемой строки
         title = self.tableModel.item(row, 0).text()
 
