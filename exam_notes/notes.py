@@ -2,7 +2,7 @@ import json
 
 from PySide6 import QtWidgets, QtGui, QtCore
 from PySide6.QtWidgets import QPushButton, QTableView, QHBoxLayout, QVBoxLayout, QLabel, QLineEdit, QDateTimeEdit, \
-    QFormLayout, QPlainTextEdit
+    QFormLayout, QPlainTextEdit, QHeaderView, QAbstractItemView
 
 
 class AddNoteDialog(QtWidgets.QDialog):
@@ -24,6 +24,7 @@ class AddNoteDialog(QtWidgets.QDialog):
         self.descriptionLabel = QLabel("Описание:")
         self.descriptionEdit = QPlainTextEdit()
         self.descriptionEdit.setReadOnly(mode == "view")
+        self.titleEdit.setReadOnly(mode == "view")
 
         self.dateLabel = QLabel("Время выполнения:")
         self.dateEdit = QDateTimeEdit()
@@ -143,9 +144,17 @@ class NotesWindow(QtWidgets.QWidget):
         self.notesTable = QTableView()
         self.notesTable.setModel(self.tableModel)
         self.notesTable.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
-        self.notesTable.resizeColumnsToContents()
-        self.notesTable.resizeRowsToContents()
-        self.notesTable.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        # self.notesTable.resizeColumnsToContents()
+        # self.notesTable.resizeRowsToContents()
+
+        # Настраиваем растягивание таблицы
+        self.notesTable.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)  # Разрешаем изменение ширины колонок
+        self.notesTable.horizontalHeader().setStretchLastSection(True)  # Растягиваем последнюю колонку
+        self.notesTable.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+
+        # Включаем возможность изменения размера колонок пользователем
+        self.notesTable.setSelectionBehavior(QAbstractItemView.SelectRows)
+
         self.addButton = QPushButton("Добавить")
         self.deleteButton = QPushButton("Удалить")
         self.editButton = QPushButton("Редактировать")
@@ -158,11 +167,19 @@ class NotesWindow(QtWidgets.QWidget):
         layout1.addWidget(self.showButton)
 
         main_layout = QVBoxLayout()
-        main_layout.addWidget(self.notesTable)
+        main_layout.addWidget(self.notesTable, stretch=1)
         main_layout.addLayout(layout1)
 
         self.setLayout(main_layout)
         self.setMinimumSize(600, 400)
+
+        QtCore.QTimer.singleShot(0, self.adjustColumnWidths)
+
+    def adjustColumnWidths(self):
+        """Автоматически подбирает ширину колонок при старте"""
+        self.notesTable.resizeColumnsToContents()
+        # Если нужно, чтобы последняя колонка занимала все оставшееся пространство
+        self.notesTable.horizontalHeader().setStretchLastSection(True)
 
     def loadDataFromFile(self):
         """Загружает данные из файла"""
@@ -328,20 +345,32 @@ class NotesWindow(QtWidgets.QWidget):
         """Удаляет выбранную заметку из таблицы и данных"""
         selected = self.notesTable.selectedIndexes()
 
-        # Получаем индекс строки (все ячейки строки имеют одинаковый row)
-        row = selected[0].row()
+        if not selected:
+            QtWidgets.QMessageBox.warning(self, "Ошибка", "Не выбрана ни одна заметка для удаления")
+            return
+        else:
+            reply = QtWidgets.QMessageBox.question(
+                self,  # или self, если есть родительское окно
+                "Подтверждение",
+                "Вы уверены, что хотите удалить заметку?",
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
+            )
 
-        # Удаляем запись из словаря notes_data
-        # Для этого нужно найти ID записи, соответствующей этой строке
-        # Получаем данные из удаляемой строки
-        title = self.tableModel.item(row, 0).text()
+            if reply == QtWidgets.QMessageBox.Yes:
+                # Получаем индекс строки (все ячейки строки имеют одинаковый row)
+                row = selected[0].row()
 
-        # Ищем соответствующую запись в словаре
-        note_id_to_delete = None
-        for note_id, note in self.notes_data.items():
-            if note['title'] == title:
-                note_id_to_delete = note_id
-                break
+                # Удаляем запись из словаря notes_data
+                # Для этого нужно найти ID записи, соответствующей этой строке
+                # Получаем данные из удаляемой строки
+                title = self.tableModel.item(row, 0).text()
+
+                # Ищем соответствующую запись в словаре
+                note_id_to_delete = None
+                for note_id, note in self.notes_data.items():
+                    if note['title'] == title:
+                        note_id_to_delete = note_id
+                        break
 
         del self.notes_data[note_id_to_delete]
         self.saveDataToFile()  # Сохраняем изменения в файл
